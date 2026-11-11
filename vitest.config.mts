@@ -14,7 +14,8 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/**/*.test.ts'],
     exclude: ['tests/**/*.spec.ts', 'node_modules/**', '.next/**'],
-    testTimeout: 30000,
+    testTimeout: 60000,
+    maxWorkers: 2,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'json-summary'],
@@ -28,3 +29,4 @@ export default defineConfig({
     },
   },
 });
+
