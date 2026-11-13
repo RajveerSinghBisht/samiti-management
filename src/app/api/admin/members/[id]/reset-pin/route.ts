@@ -4,9 +4,11 @@ import { requireAuthenticatedSession } from '@/lib/auth/guards';
 import { handleApiError, parseJsonBody, uuidSchema } from '@/lib/http';
 import { resetMemberPin } from '@/lib/services/members';
 
-const resetPinSchema = z.object({
-  newPin: z.string().trim().regex(/^\d{4,6}$/, 'PIN must be 4 to 6 digits'),
-});
+const resetPinSchema = z
+  .object({
+    newPin: z.string().trim().regex(/^\d{4,6}$/, 'PIN must be 4 to 6 digits').optional(),
+  })
+  .default({});
 
 export async function POST(
   req: NextRequest,
@@ -24,12 +26,12 @@ export async function POST(
   if ('errorResponse' in parsed) return parsed.errorResponse;
 
   try {
-    await resetMemberPin({
+    const result = await resetMemberPin({
       id,
       newPin: parsed.data.newPin,
       adminId: auth.session.memberId,
     });
-    return NextResponse.json({ ok: true, mustChangePin: true });
+    return NextResponse.json({ ok: true, mustChangePin: true, temporaryPin: result.temporaryPin });
   } catch (err) {
     return handleApiError(err);
   }

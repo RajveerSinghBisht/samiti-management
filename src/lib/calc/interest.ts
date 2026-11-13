@@ -1,4 +1,4 @@
-import { addDaysIst, daysInMonth, parseIstDateParts } from '@/lib/dates';
+import { addDaysIst, daysInMonth } from '@/lib/dates';
 import { roundHalfUp } from '@/lib/money';
 import { resolveActiveEntries } from './ledger-replay';
 import type { CalcLedgerEntry, InterestMode, LoanBalanceResult } from './types';

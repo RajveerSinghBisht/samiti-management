@@ -7,7 +7,7 @@ import { formatDisplayDate, toIstDateString } from '@/lib/dates';
 interface CycleRow {
   id: string;
   name: string;
-  status: 'ACTIVE' | 'CLOSED';
+  status: 'ACTIVE' | 'CLOSED' | 'PENDING_SECOND_ADMIN_APPROVAL';
 }
 
 interface MemberRow {

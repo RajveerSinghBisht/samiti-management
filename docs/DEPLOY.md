@@ -7,15 +7,31 @@ This system is a private ledger and viewer for your samiti. It **never holds or 
 
 ---
 
-## Step 1: Create an External PostgreSQL Database
+## Step 1: Create an External PostgreSQL Database & Two Database Roles
 
-Vercel does not store local files permanently, so you must use an external managed PostgreSQL database (for example: Neon, Supabase, or Vercel Postgres).
+Vercel does not store local files permanently, so you must use an external managed PostgreSQL database (for example: Neon, Supabase, AWS RDS, or Railway).
 
-1. Sign up with a managed PostgreSQL provider (for example, Neon or Supabase).
-2. Create a new project/database named `samiti` in a nearby region (such as Mumbai `ap-south-1`).
-3. Copy the PostgreSQL connection string. It looks like:
-   `postgresql://USER:PASSWORD@HOST:5432/samiti?sslmode=require`
-4. Keep this URL private.
+For production defense-in-depth, configure **two database roles**:
+1. **`samiti_owner` (Database Owner / Migration Role)**:
+   - Superuser or schema owner used during initial setup and schema migrations (`npm run db:migrate`).
+2. **`samiti_app` (Application Runtime Role)**:
+   - Dedicated low-privilege role used by the deployed Next.js application runtime.
+   - Database trigger and SQL permissions explicitly **REVOKE UPDATE, DELETE, and TRUNCATE** on `ledger_entries` from `samiti_app`.
+   - Has `SELECT, INSERT` privileges on `ledger_entries` and normal CRUD privileges on operational tables (e.g. sessions, approvals, meetings).
+
+```sql
+-- Create app role and grant schema usage
+CREATE ROLE samiti_app WITH LOGIN PASSWORD 'your_app_password';
+GRANT CONNECT ON DATABASE samiti TO samiti_app;
+GRANT USAGE ON SCHEMA public TO samiti_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO samiti_app;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO samiti_app;
+
+-- REVOKE UPDATE, DELETE, TRUNCATE on ledger_entries from application role
+REVOKE UPDATE, DELETE, TRUNCATE ON TABLE public.ledger_entries FROM samiti_app;
+```
+
+Provide the `samiti_app` connection URL as `DATABASE_URL` in Vercel.
 
 ---
 

@@ -39,9 +39,12 @@ export async function createCycle(input: {
   interestRateBps: number;
   interestMode: 'REDUCING_BALANCE' | 'FLAT';
   interestSharingMode: 'PROPORTIONAL_CONTRIBUTION' | 'EQUAL';
-  rotationPayoutEnabled: boolean;
+  rotationPayoutEnabled?: boolean;
   lateRuleMode?: 'NONE' | 'FIXED_PAISA' | 'PERCENT_BPS';
   lateRuleValue?: number;
+  normalLoanCapPaise?: number;
+  emergencyLoanCapPaise?: number;
+  meetingDayOfMonth?: number;
   adminId: string;
 }) {
   const name = input.name.trim();
@@ -62,6 +65,11 @@ export async function createCycle(input: {
     throw new ServiceError(400, 'lateRuleValue must be a non-negative integer');
   }
 
+  const normalLoanCapPaise = input.normalLoanCapPaise ?? 5_000_000;
+  const emergencyLoanCapPaise = input.emergencyLoanCapPaise ?? 10_000_000;
+  const meetingDayOfMonth = input.meetingDayOfMonth ?? 10;
+  const rotationPayoutEnabled = Boolean(input.rotationPayoutEnabled);
+
   const db = getDb();
   return db.transaction(async (tx) => {
     const inserted = await tx
@@ -74,7 +82,10 @@ export async function createCycle(input: {
         interestRateBps: input.interestRateBps,
         interestMode: input.interestMode,
         interestSharingMode: input.interestSharingMode,
-        rotationPayoutEnabled: input.rotationPayoutEnabled,
+        rotationPayoutEnabled,
+        normalLoanCapPaise,
+        emergencyLoanCapPaise,
+        meetingDayOfMonth,
         lateRuleMode,
         lateRuleValue,
         status: 'ACTIVE',

@@ -5,6 +5,7 @@ import {
   handleApiError,
   istDateSchema,
   parseJsonBody,
+  strictNonNegativeIntSchema,
   strictPositiveIntSchema,
   uuidSchema,
 } from '@/lib/http';
@@ -14,7 +15,13 @@ const requestLoanSchema = z.object({
   cycleId: uuidSchema,
   memberId: uuidSchema,
   principalPaise: strictPositiveIntSchema,
+  interestRateBps: strictNonNegativeIntSchema.max(5000).optional(),
+  repaymentMode: z.enum(['MONTHLY_INSTALLMENTS', 'FULL_REPAYMENT']).optional(),
+  termMonths: strictPositiveIntSchema.max(120).optional(),
+  dueDate: istDateSchema.optional(),
   disbursedDate: istDateSchema,
+  isEmergency: z.boolean().optional(),
+  emergencyReason: z.string().trim().max(500).optional(),
   note: z.string().trim().max(300).optional(),
 });
 

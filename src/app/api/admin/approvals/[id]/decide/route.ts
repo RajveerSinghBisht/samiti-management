@@ -5,7 +5,7 @@ import { handleApiError, parseJsonBody, uuidSchema } from '@/lib/http';
 import { decideApproval } from '@/lib/services/approvals';
 
 const decideSchema = z.object({
-  decision: z.enum(['APPROVE', 'REJECT']),
+  decision: z.enum(['APPROVE', 'APPROVED', 'REJECT', 'REJECTED']),
   reason: z.string().trim().max(300).optional(),
 });
 
@@ -24,10 +24,12 @@ export async function POST(
   const parsed = await parseJsonBody(req, decideSchema);
   if ('errorResponse' in parsed) return parsed.errorResponse;
 
+  const decision = parsed.data.decision.startsWith('APPROV') ? 'APPROVE' : 'REJECT';
+
   try {
     const res = await decideApproval({
       approvalId: id,
-      decision: parsed.data.decision,
+      decision,
       decisionReason: parsed.data.reason,
       adminId: auth.session.memberId,
     });

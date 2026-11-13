@@ -18,9 +18,12 @@ const createCycleSchema = z.object({
   interestRateBps: strictNonNegativeIntSchema.max(5000),
   interestMode: z.enum(['REDUCING_BALANCE', 'FLAT']),
   interestSharingMode: z.enum(['PROPORTIONAL_CONTRIBUTION', 'EQUAL']),
-  rotationPayoutEnabled: z.boolean(),
+  rotationPayoutEnabled: z.boolean().default(false),
   lateRuleMode: z.enum(['NONE', 'FIXED_PAISA', 'PERCENT_BPS']).optional(),
   lateRuleValue: strictNonNegativeIntSchema.optional(),
+  normalLoanCapPaise: strictPositiveIntSchema.optional(),
+  emergencyLoanCapPaise: strictPositiveIntSchema.optional(),
+  meetingDayOfMonth: z.number().int().min(1).max(31).optional(),
 });
 
 export async function GET(req: NextRequest) {

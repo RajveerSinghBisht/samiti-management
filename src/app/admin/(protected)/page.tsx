@@ -11,6 +11,10 @@ import { eq } from 'drizzle-orm';
 export const dynamic = 'force-dynamic';
 
 const ADMIN_CARDS = [
+  { href: '/admin/dashboard', title: 'Monthly Dashboard', desc: 'Fast, phone-friendly view of payments, loan balances & available pool' },
+  { href: '/admin/cycle-wizard', title: 'New Cycle Wizard', desc: 'Guided step-by-step cycle creation with two-admin approval' },
+  { href: '/admin/meetings/conduct', title: 'Conduct Monthly Meeting', desc: 'Guided flow for attendance, contributions, repayments, and bank interest' },
+  { href: '/admin/good-cause', title: 'Give for a Good Cause', desc: 'Sidebar community grant deducted from interest pool with 2-admin approval' },
   { href: '/admin/contributions', title: 'Monthly Contributions Grid', desc: 'One-tap recording per member with confirmation' },
   { href: '/admin/loans', title: 'Loans & Repayments', desc: 'Request loans, accrue interest, record repayments' },
   { href: '/admin/approvals', title: 'Approvals Queue', desc: 'Two-admin sign-off for loans, reversals, cycle close' },

@@ -16,6 +16,10 @@ export async function applyMigrations(databaseUrl?: string): Promise<void> {
 
   const client = createDbClient(url);
   try {
+    if (url.includes('samiti_test')) {
+      await client.executeRaw('DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO PUBLIC;');
+    }
+
     await client.executeRaw(`
       CREATE TABLE IF NOT EXISTS __samiti_migrations (
         name text PRIMARY KEY,

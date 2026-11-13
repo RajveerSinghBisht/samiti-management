@@ -11,7 +11,7 @@ const E2E_DB_DIR = path.resolve(process.cwd(), '.data', 'e2e-ui-pg');
 
 const SHARED_ENV: NodeJS.ProcessEnv = {
   ...process.env,
-  NODE_ENV: 'development',
+  NODE_ENV: 'production',
   PORT: String(E2E_PORT),
   DATABASE_URL: `pglite://${E2E_DB_DIR}`,
   SESSION_SECRET: 'e2e-session-secret-minimum-32-chars-long-001',
@@ -107,7 +107,7 @@ test.describe('UI E2E & Accessibility Verification', () => {
     const nextBin = path.resolve(process.cwd(), 'node_modules', 'next', 'dist', 'bin', 'next');
     serverProc = spawn(
       process.execPath,
-      [nextBin, 'dev', '--webpack', '-p', String(E2E_PORT)],
+      [nextBin, 'start', '-p', String(E2E_PORT)],
       {
         env: SHARED_ENV,
         stdio: 'pipe',
@@ -119,7 +119,11 @@ test.describe('UI E2E & Accessibility Verification', () => {
 
   test.afterAll(async () => {
     if (serverProc && !serverProc.killed) {
-      serverProc.kill('SIGTERM');
+      if (process.platform === 'win32' && serverProc.pid) {
+        spawnSync('taskkill', ['/pid', String(serverProc.pid), '/f', '/t']);
+      } else {
+        serverProc.kill('SIGTERM');
+      }
     }
   });
 

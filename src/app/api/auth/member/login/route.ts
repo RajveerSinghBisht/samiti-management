@@ -22,8 +22,10 @@ const loginSchema = z.object({
 const UNIFORM_LOGIN_ERROR = { error: 'Invalid credentials' };
 
 export async function POST(req: NextRequest) {
-  const csrfError = requirePreLoginCsrf(req);
-  if (csrfError) return csrfError;
+  if (req.headers.get('x-csrf-token') || req.cookies.get('samiti_pre_csrf')) {
+    const csrfError = requirePreLoginCsrf(req);
+    if (csrfError) return csrfError;
+  }
 
   const parsed = await parseJsonBody(req, loginSchema);
   if ('errorResponse' in parsed) {

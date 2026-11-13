@@ -16,7 +16,7 @@ interface MemberRow {
 interface CycleRow {
   id: string;
   name: string;
-  status: 'ACTIVE' | 'CLOSED';
+  status: 'ACTIVE' | 'CLOSED' | 'PENDING_SECOND_ADMIN_APPROVAL';
 }
 
 interface LoanRow {

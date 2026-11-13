@@ -49,12 +49,15 @@ export async function listMembers(): Promise<SafeMemberView[]> {
 export async function createMember(input: {
   name: string;
   mobile: string;
-  role: 'ADMIN' | 'MEMBER';
-  initialSecret: string;
+  role?: 'ADMIN' | 'MEMBER';
+  initialSecret?: string;
+  cycleId?: string;
   adminId: string;
-}): Promise<SafeMemberView> {
+}): Promise<SafeMemberView & { member: SafeMemberView; temporaryPin?: string }> {
   const name = input.name.trim();
   const mobile = input.mobile.trim();
+  const role = input.role || 'MEMBER';
+
   if (name.length < 2 || name.length > 100) {
     throw new ServiceError(400, 'Name must be 2 to 100 characters');
   }
@@ -65,17 +68,37 @@ export async function createMember(input: {
   const env = getEnv();
   let pinHash: string | null = null;
   let passwordHash: string | null = null;
+  let temporaryPin: string | undefined = undefined;
+  let mustChangePin = false;
 
-  if (input.role === 'MEMBER') {
-    if (!validatePinFormat(input.initialSecret)) {
-      throw new ServiceError(400, 'Member PIN must be 4 to 6 digits');
+  let secret = input.initialSecret?.trim();
+
+  if (role === 'MEMBER') {
+    if (input.cycleId) {
+      if (secret) {
+        if (!/^\d{6}$/.test(secret)) {
+          throw new ServiceError(400, 'Member PIN must be strictly 6 digits');
+        }
+      } else {
+        secret = String(Math.floor(100000 + Math.random() * 900000));
+      }
+      temporaryPin = secret;
+      mustChangePin = true;
+    } else {
+      if (!secret) {
+        secret = String(Math.floor(100000 + Math.random() * 900000));
+        temporaryPin = secret;
+        mustChangePin = true;
+      } else if (!validatePinFormat(secret)) {
+        throw new ServiceError(400, 'Member PIN must be 4 to 6 digits');
+      }
     }
-    pinHash = await hashPin(input.initialSecret, env.PIN_PEPPER);
+    pinHash = await hashPin(secret, env.PIN_PEPPER);
   } else {
-    if (!validateAdminPasswordFormat(input.initialSecret)) {
+    if (!secret || !validateAdminPasswordFormat(secret)) {
       throw new ServiceError(400, 'Admin password must be at least 12 characters');
     }
-    passwordHash = await hashPassword(input.initialSecret, env.PIN_PEPPER);
+    passwordHash = await hashPassword(secret, env.PIN_PEPPER);
   }
 
   const db = getDb();
@@ -94,11 +117,11 @@ export async function createMember(input: {
       .values({
         name,
         mobile,
-        role: input.role,
+        role,
         status: 'ACTIVE',
         pinHash,
         passwordHash,
-        mustChangePin: false,
+        mustChangePin,
         totpEnabled: false,
       })
       .returning({
@@ -118,14 +141,16 @@ export async function createMember(input: {
     }
 
     if (member.role === 'MEMBER') {
-      const activeCycles = await tx
-        .select()
-        .from(cycles)
-        .where(eq(cycles.status, 'ACTIVE'));
+      const activeCycles = input.cycleId
+        ? await tx.select().from(cycles).where(eq(cycles.id, input.cycleId))
+        : await tx.select().from(cycles).where(eq(cycles.status, 'ACTIVE'));
 
       for (const cycle of activeCycles) {
         const existingCount = (
-          await tx.select({ id: cycleMembers.id }).from(cycleMembers).where(eq(cycleMembers.cycleId, cycle.id))
+          await tx
+            .select({ id: cycleMembers.id })
+            .from(cycleMembers)
+            .where(eq(cycleMembers.cycleId, cycle.id))
         ).length;
 
         await tx
@@ -171,7 +196,11 @@ export async function createMember(input: {
     return member;
   });
 
-  return created;
+  return {
+    ...created,
+    member: { ...created },
+    temporaryPin,
+  };
 }
 
 export async function updateMember(input: {
@@ -232,12 +261,9 @@ export async function updateMember(input: {
 
 export async function resetMemberPin(input: {
   id: string;
-  newPin: string;
+  newPin?: string;
   adminId: string;
-}): Promise<void> {
-  if (!validatePinFormat(input.newPin)) {
-    throw new ServiceError(400, 'PIN must be 4 to 6 digits');
-  }
+}): Promise<{ temporaryPin: string }> {
   const env = getEnv();
   const db = getDb();
 
@@ -250,7 +276,16 @@ export async function resetMemberPin(input: {
     throw new ServiceError(400, 'PIN reset applies to MEMBER accounts only');
   }
 
-  const pinHash = await hashPin(input.newPin, env.PIN_PEPPER);
+  const generatedPin =
+    input.newPin && input.newPin.trim().length > 0
+      ? input.newPin.trim()
+      : String(Math.floor(100000 + Math.random() * 900000));
+
+  if (!validatePinFormat(generatedPin)) {
+    throw new ServiceError(400, 'PIN must be 4 to 6 digits');
+  }
+
+  const pinHash = await hashPin(generatedPin, env.PIN_PEPPER);
 
   await db
     .update(members)
@@ -273,5 +308,7 @@ export async function resetMemberPin(input: {
     targetId: input.id,
     metadata: { mustChangePin: true },
   });
+
+  return { temporaryPin: generatedPin };
 }
 

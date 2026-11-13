@@ -15,7 +15,7 @@ export interface CycleRow {
   interestMode: 'REDUCING_BALANCE' | 'FLAT';
   interestSharingMode: 'PROPORTIONAL_CONTRIBUTION' | 'EQUAL';
   rotationPayoutEnabled: boolean;
-  status: 'ACTIVE' | 'CLOSED';
+  status: 'ACTIVE' | 'CLOSED' | 'PENDING_SECOND_ADMIN_APPROVAL';
 }
 
 function parsePercentToBps(raw: string): number {
@@ -108,6 +108,21 @@ export function AdminCycleClient({ initialCycles }: { initialCycles: CycleRow[] 
           {notice}
         </div>
       )}
+
+      <div className="bg-blue-50 border-2 border-blue-900 rounded-xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-blue-950">New Cycle Guided Wizard</h2>
+          <p className="text-slate-700 text-lg mt-1">
+            Create new cycles step-by-step with 2-admin approval, duration calculation, loan caps, and returning members.
+          </p>
+        </div>
+        <a
+          href="/admin/cycle-wizard"
+          className="min-h-[48px] px-6 py-3 bg-blue-900 text-white font-bold text-lg rounded-lg hover:bg-blue-800 whitespace-nowrap"
+        >
+          Launch Wizard →
+        </a>
+      </div>
 
       <form onSubmit={handleCreate} className="bg-white border-2 border-slate-300 rounded-xl p-6 space-y-4">
         <h2 className="text-2xl font-bold text-slate-900">Start New Cycle</h2>

@@ -136,6 +136,30 @@ export async function decideApproval(input: {
           reversalEntryId: rev.reversalEntry.id,
           replacementEntryId: rev.replacementEntry?.id ?? null,
         };
+      } else if (updatedApproval.actionType === 'GOOD_CAUSE_GRANT') {
+        const payload = updatedApproval.payloadJson as {
+          cycleId: string;
+          amountPaise: number;
+          meetingDate: string;
+          recipient: string;
+          reason: string;
+          consentNote: string;
+        };
+        const grantEntry = await appendLedgerEntry(
+          {
+            cycleId: payload.cycleId,
+            memberId: null,
+            loanId: null,
+            entryType: 'GOOD_CAUSE_GRANT',
+            amountPaise: payload.amountPaise,
+            effectiveDate: payload.meetingDate,
+            reason: `Good Cause Grant to ${payload.recipient}: ${payload.reason}`,
+            idempotencyKey: `good-cause:${updatedApproval.id}`,
+            createdByAdminId: input.adminId,
+          },
+          tx
+        );
+        sideEffectResult = { grantEntryId: grantEntry.id };
       } else if (updatedApproval.actionType === 'CYCLE_CLOSE') {
         const cycleRows = await tx
           .select()

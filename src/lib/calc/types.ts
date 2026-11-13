@@ -16,6 +16,8 @@ export const LEDGER_ENTRY_TYPES = [
   'ROTATION_PAYOUT',
   'SHARE_PAYOUT',
   'REVERSAL',
+  'GOOD_CAUSE_GRANT',
+  'BANK_INTEREST',
 ] as const;
 export type LedgerEntryType = (typeof LEDGER_ENTRY_TYPES)[number];
 
@@ -77,9 +79,12 @@ export interface GroupTotals {
   totalPrincipalRepaidPaise: number;
   totalOutstandingPrincipalPaise: number;
   totalInterestCollectedPaise: number;
+  totalBankInterestPaise: number;
+  totalGoodCauseGrantsPaise: number;
   totalRotationPayoutsPaise: number;
   totalSharePayoutsPaise: number;
   treasurerCashOnHandPaise: number;
+  poolAvailableToLendPaise: number;
   totalPoolEquityPaise: number;
 }
 

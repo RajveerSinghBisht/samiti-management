@@ -5,6 +5,10 @@ import { MemberMeetingsView } from '@/components/member/MemberPortalViews';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+  title: 'Member Meetings | Samiti',
+};
+
 export default async function MemberMeetingsPage() {
   const session = await requireMemberPageSession();
   const data = await getMemberPortalData(session.memberId);

@@ -45,7 +45,25 @@ export async function requireAuthenticatedSession(
     requireCsrf?: boolean;
   } = {}
 ): Promise<{ session: ActiveSession } | { errorResponse: NextResponse }> {
-  const rawToken = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  let rawToken = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (!rawToken) {
+    const cookieHeader = req.headers.get('cookie') || '';
+    if (cookieHeader.startsWith('0=')) {
+      const reconstructed = cookieHeader
+        .split('; ')
+        .map((p) => p.slice(p.indexOf('=') + 1))
+        .join('');
+      const match = reconstructed.match(/samiti_session=([^;]+)/);
+      if (match && match[1]) {
+        rawToken = match[1];
+      }
+    } else {
+      const match = cookieHeader.match(/samiti_session=([^;]+)/);
+      if (match && match[1]) {
+        rawToken = match[1];
+      }
+    }
+  }
   const session = await getSessionByRawToken(rawToken);
   if (!session) {
     return { errorResponse: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };

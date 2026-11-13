@@ -23,6 +23,8 @@ export function calculateGroupTotals(input: {
   let totalLoansDisbursedPaise = 0;
   let totalPrincipalRepaidPaise = 0;
   let totalInterestCollectedPaise = 0;
+  let totalBankInterestPaise = 0;
+  let totalGoodCauseGrantsPaise = 0;
   let totalRotationPayoutsPaise = 0;
   let totalSharePayoutsPaise = 0;
 
@@ -39,6 +41,12 @@ export function calculateGroupTotals(input: {
         break;
       case 'REPAYMENT_INTEREST':
         totalInterestCollectedPaise += entry.amountPaise;
+        break;
+      case 'BANK_INTEREST':
+        totalBankInterestPaise += entry.amountPaise;
+        break;
+      case 'GOOD_CAUSE_GRANT':
+        totalGoodCauseGrantsPaise += entry.amountPaise;
         break;
       case 'ROTATION_PAYOUT':
         totalRotationPayoutsPaise += entry.amountPaise;
@@ -58,17 +66,24 @@ export function calculateGroupTotals(input: {
 
   const treasurerCashOnHandPaise =
     totalContributionsPaise +
-    totalPrincipalRepaidPaise +
-    totalInterestCollectedPaise -
+    totalInterestCollectedPaise +
+    totalBankInterestPaise +
+    totalPrincipalRepaidPaise -
     totalLoansDisbursedPaise -
+    totalGoodCauseGrantsPaise -
     totalRotationPayoutsPaise -
     totalSharePayoutsPaise;
 
-  const totalPoolEquityPaise =
+  const poolAvailableToLendPaise =
     totalContributionsPaise +
-    totalInterestCollectedPaise -
-    totalRotationPayoutsPaise -
-    totalSharePayoutsPaise;
+    totalInterestCollectedPaise +
+    totalBankInterestPaise +
+    totalPrincipalRepaidPaise -
+    totalLoansDisbursedPaise -
+    totalGoodCauseGrantsPaise;
+
+  const totalPoolEquityPaise =
+    treasurerCashOnHandPaise + totalOutstandingPrincipalPaise;
 
   return {
     totalContributionsPaise,
@@ -76,9 +91,12 @@ export function calculateGroupTotals(input: {
     totalPrincipalRepaidPaise,
     totalOutstandingPrincipalPaise,
     totalInterestCollectedPaise,
+    totalBankInterestPaise,
+    totalGoodCauseGrantsPaise,
     totalRotationPayoutsPaise,
     totalSharePayoutsPaise,
     treasurerCashOnHandPaise,
+    poolAvailableToLendPaise,
     totalPoolEquityPaise,
   };
 }

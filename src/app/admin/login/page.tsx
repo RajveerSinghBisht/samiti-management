@@ -17,6 +17,10 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  React.useEffect(() => {
+    document.title = 'Admin Sign In | Samiti';
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');

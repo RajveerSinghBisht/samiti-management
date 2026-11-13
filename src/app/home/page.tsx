@@ -5,6 +5,10 @@ import { MemberHomeView } from '@/components/member/MemberPortalViews';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+  title: 'Member Home | Samiti',
+};
+
 export default async function MemberHomePage() {
   const session = await requireMemberPageSession();
   const data = await getMemberPortalData(session.memberId);

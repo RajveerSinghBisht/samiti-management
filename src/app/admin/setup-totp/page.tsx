@@ -14,6 +14,7 @@ export default function AdminTotpSetupPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = 'Setup Two-Factor Authenticator | Samiti';
     let active = true;
     (async () => {
       try {

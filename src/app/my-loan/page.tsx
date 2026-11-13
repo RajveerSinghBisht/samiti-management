@@ -5,6 +5,10 @@ import { MemberLoanView } from '@/components/member/MemberPortalViews';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+  title: 'My Loan | Samiti',
+};
+
 export default async function MemberLoanPage() {
   const session = await requireMemberPageSession();
   const data = await getMemberPortalData(session.memberId);

@@ -17,6 +17,10 @@ export default function MemberLoginPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  React.useEffect(() => {
+    document.title = 'Member Sign In | Samiti';
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');

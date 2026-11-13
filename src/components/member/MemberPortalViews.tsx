@@ -172,12 +172,14 @@ export function MemberLoanView({
                       </div>
                     </div>
                     <div className="p-4 bg-slate-100 rounded-lg">
-                      <div className="text-lg font-semibold text-slate-800">{dict.totalOwed}</div>
+                      <div className="text-lg font-semibold text-slate-800">
+                        {dict.unpaidInterest}
+                      </div>
                       <div
                         data-important-number="true"
                         className="text-[30px] font-bold text-blue-900"
                       >
-                        {formatPaiseToInr(loan.balance.totalOwedPaise)}
+                        {formatPaiseToInr(loan.balance.unpaidAccruedInterestPaise)}
                       </div>
                     </div>
                     <div className="p-4 bg-slate-100 rounded-lg">

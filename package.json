@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "seed:admin": "tsx scripts/seed-admin.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
     "test": "vitest run",
     "test:acceptance": "vitest run tests/acceptance",
     "test:properties": "vitest run tests/properties",

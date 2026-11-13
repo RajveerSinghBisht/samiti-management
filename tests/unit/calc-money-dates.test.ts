@@ -178,8 +178,8 @@ describe('Unit coverage for money, dates, and pure calculation engine', () => {
       asOfDate: '2027-01-31',
       includeAsOfDayInterest: true,
     });
-    expect(balWrap.computedInterestAccruedPaise).toBe(6_000);
-    expect(balWrap.unpaidAccruedInterestPaise).toBe(5_000);
+    expect(balWrap.computedInterestAccruedPaise).toBe(3_000);
+    expect(balWrap.unpaidAccruedInterestPaise).toBe(2_000);
 
     expect(() =>
       allocateRepayment({

@@ -65,3 +65,4 @@ if (mode === 'generate') {
   }
   console.log(`Verified ${actualFiles.length} locked acceptance_v2 test files.`);
 }
+

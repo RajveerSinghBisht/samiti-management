@@ -5,13 +5,16 @@ import {
   handleApiError,
   istDateSchema,
   parseJsonBody,
+  strictNonNegativeIntSchema,
   strictPositiveIntSchema,
   uuidSchema,
 } from '@/lib/http';
 import { repayLoan } from '@/lib/services/loans';
 
 const repaySchema = z.object({
-  amountPaise: strictPositiveIntSchema,
+  amountPaise: strictPositiveIntSchema.optional(),
+  interestPaidPaise: strictNonNegativeIntSchema.optional(),
+  principalPaidPaise: strictNonNegativeIntSchema.optional(),
   effectiveDate: istDateSchema,
 });
 
@@ -34,6 +37,8 @@ export async function POST(
     const result = await repayLoan({
       loanId: id,
       amountPaise: parsed.data.amountPaise,
+      interestPaidPaise: parsed.data.interestPaidPaise,
+      principalPaidPaise: parsed.data.principalPaidPaise,
       effectiveDate: parsed.data.effectiveDate,
       adminId: auth.session.memberId,
     });

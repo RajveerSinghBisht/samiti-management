@@ -18,6 +18,12 @@ function canonicalEntryOrder(entryType: LedgerEntryType): number {
       return 7;
     case 'REVERSAL':
       return 8;
+    case 'BANK_INTEREST':
+      return 9;
+    case 'GOOD_CAUSE_GRANT':
+      return 10;
+    default:
+      return 99;
   }
 }
 

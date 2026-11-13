@@ -34,6 +34,7 @@ export const cycles = pgTable('cycles', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   startDate: text('start_date').notNull(),
+  endDate: text('end_date'),
   lengthMonths: integer('length_months').notNull(),
   monthlyContributionPaise: integer('monthly_contribution_paise').notNull(),
   interestRateBps: integer('interest_rate_bps').notNull(),
@@ -41,13 +42,20 @@ export const cycles = pgTable('cycles', {
   interestSharingMode: text('interest_sharing_mode')
     .$type<'PROPORTIONAL_CONTRIBUTION' | 'EQUAL'>()
     .notNull(),
+  normalLoanCapPaise: integer('normal_loan_cap_paise').notNull().default(5000000),
+  emergencyLoanCapPaise: integer('emergency_loan_cap_paise').notNull().default(10000000),
+  meetingDayOfMonth: integer('meeting_day_of_month').notNull().default(10),
   rotationPayoutEnabled: boolean('rotation_payout_enabled').notNull().default(false),
   lateRuleMode: text('late_rule_mode')
     .$type<'NONE' | 'FIXED_PAISA' | 'PERCENT_BPS'>()
     .notNull()
     .default('NONE'),
   lateRuleValue: integer('late_rule_value').notNull().default(0),
-  status: text('status').$type<'ACTIVE' | 'CLOSED'>().notNull().default('ACTIVE'),
+  reviewSummary: text('review_summary'),
+  status: text('status')
+    .$type<'ACTIVE' | 'CLOSED' | 'PENDING_SECOND_ADMIN_APPROVAL'>()
+    .notNull()
+    .default('ACTIVE'),
   closedAt: timestamp('closed_at', { withTimezone: true }),
   createdByAdminId: uuid('created_by_admin_id')
     .notNull()
@@ -110,6 +118,14 @@ export const loans = pgTable('loans', {
   principalPaise: integer('principal_paise').notNull(),
   interestRateBps: integer('interest_rate_bps').notNull(),
   interestMode: text('interest_mode').$type<'REDUCING_BALANCE' | 'FLAT'>().notNull(),
+  repaymentMode: text('repayment_mode')
+    .$type<'MONTHLY_INSTALLMENTS' | 'FULL_REPAYMENT'>()
+    .notNull()
+    .default('MONTHLY_INSTALLMENTS'),
+  termMonths: integer('term_months'),
+  dueDate: text('due_date'),
+  isEmergency: boolean('is_emergency').notNull().default(false),
+  emergencyReason: text('emergency_reason'),
   disbursedDate: text('disbursed_date').notNull(),
   status: text('status')
     .$type<'PENDING_APPROVAL' | 'ACTIVE' | 'CLOSED' | 'REJECTED'>()
@@ -143,6 +159,8 @@ export const ledgerEntries = pgTable(
         | 'ROTATION_PAYOUT'
         | 'SHARE_PAYOUT'
         | 'REVERSAL'
+        | 'GOOD_CAUSE_GRANT'
+        | 'BANK_INTEREST'
       >()
       .notNull(),
     amountPaise: integer('amount_paise').notNull(),
@@ -169,7 +187,14 @@ export const approvals = pgTable('approvals', {
     .notNull()
     .references(() => cycles.id),
   actionType: text('action_type')
-    .$type<'LOAN_APPROVAL' | 'CYCLE_CLOSE' | 'HIGH_VALUE_REVERSAL'>()
+    .$type<
+      | 'LOAN_APPROVAL'
+      | 'CYCLE_CLOSE'
+      | 'HIGH_VALUE_REVERSAL'
+      | 'CYCLE_ACTIVATION'
+      | 'GOOD_CAUSE_GRANT'
+      | 'EMERGENCY_LOAN'
+    >()
     .notNull(),
   targetId: uuid('target_id').notNull(),
   amountPaise: integer('amount_paise').notNull().default(0),
@@ -194,6 +219,12 @@ export const meetings = pgTable('meetings', {
   hostMemberId: uuid('host_member_id').references(() => members.id),
   place: text('place').notNull(),
   notes: text('notes'),
+  status: text('status')
+    .$type<'SCHEDULED' | 'CONDUCTED' | 'CLOSED'>()
+    .notNull()
+    .default('SCHEDULED'),
+  summaryNote: text('summary_note'),
+  closedAt: timestamp('closed_at', { withTimezone: true }),
   createdByAdminId: uuid('created_by_admin_id')
     .notNull()
     .references(() => members.id),

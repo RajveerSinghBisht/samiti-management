@@ -15,7 +15,8 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     exclude: ['tests/**/*.spec.ts', 'node_modules/**', '.next/**'],
     testTimeout: 60000,
-    maxWorkers: 2,
+    maxWorkers: 1,
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'json-summary'],

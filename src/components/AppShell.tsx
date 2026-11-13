@@ -119,10 +119,34 @@ export function AppShell({
                   Approvals
                 </Link>
                 <Link
+                  href="/admin/dashboard"
+                  className="min-h-[48px] min-w-[48px] inline-flex items-center px-4 py-2 rounded-lg border-2 border-slate-700 bg-white text-slate-900 font-semibold text-lg"
+                >
+                  Monthly Dashboard
+                </Link>
+                <Link
+                  href="/admin/meetings/conduct"
+                  className="min-h-[48px] min-w-[48px] inline-flex items-center px-4 py-2 rounded-lg border-2 border-slate-700 bg-white text-slate-900 font-semibold text-lg"
+                >
+                  Conduct Meeting
+                </Link>
+                <Link
+                  href="/admin/cycle-wizard"
+                  className="min-h-[48px] min-w-[48px] inline-flex items-center px-4 py-2 rounded-lg border-2 border-slate-700 bg-white text-slate-900 font-semibold text-lg"
+                >
+                  Cycle Wizard
+                </Link>
+                <Link
                   href="/admin/members"
                   className="min-h-[48px] min-w-[48px] inline-flex items-center px-4 py-2 rounded-lg border-2 border-slate-700 bg-white text-slate-900 font-semibold text-lg"
                 >
                   Members
+                </Link>
+                <Link
+                  href="/admin/good-cause"
+                  className="min-h-[48px] min-w-[48px] inline-flex items-center px-4 py-2 rounded-lg border-2 border-amber-600 bg-amber-50 text-amber-900 font-semibold text-lg"
+                >
+                  Good Cause
                 </Link>
               </>
             ) : null}

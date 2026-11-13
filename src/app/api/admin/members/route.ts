@@ -7,8 +7,9 @@ import { createMember, listMembers } from '@/lib/services/members';
 const createMemberSchema = z.object({
   name: z.string().trim().min(2).max(100),
   mobile: z.string().trim().regex(/^\d{10}$/, 'Mobile must be 10 digits'),
-  role: z.enum(['ADMIN', 'MEMBER']),
-  initialSecret: z.string().min(4).max(128),
+  role: z.enum(['ADMIN', 'MEMBER']).default('MEMBER'),
+  initialSecret: z.string().min(4).max(128).optional(),
+  cycleId: z.string().uuid().optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -31,11 +32,18 @@ export async function POST(req: NextRequest) {
   if ('errorResponse' in parsed) return parsed.errorResponse;
 
   try {
-    const member = await createMember({
+    const result = await createMember({
       ...parsed.data,
       adminId: auth.session.memberId,
     });
-    return NextResponse.json({ member }, { status: 201 });
+    return NextResponse.json(
+      {
+        ...result.member,
+        member: result.member,
+        temporaryPin: result.temporaryPin,
+      },
+      { status: 201 }
+    );
   } catch (err) {
     return handleApiError(err);
   }
