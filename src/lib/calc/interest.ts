@@ -3,6 +3,96 @@ import { roundHalfUp } from '@/lib/money';
 import { resolveActiveEntries } from './ledger-replay';
 import type { CalcLedgerEntry, InterestMode, LoanBalanceResult } from './types';
 
+/**
+ * Authoritative Samiti Rule 4:
+ * Interest due at meeting N for a loan = rate x principal outstanding at close of meeting N-1
+ * (before any repayment at meeting N).
+ * Rounded half up to paise. No proration, no compounding.
+ */
+export function calculateLoanMeetingInterestDue(input: {
+  principalPaise: number;
+  interestRateBps: number;
+  interestMode?: InterestMode;
+  outstandingPrincipalPaise: number;
+  isDisbursementMeeting?: boolean;
+}): number {
+  if (input.isDisbursementMeeting) {
+    return 0;
+  }
+  const basePaise =
+    input.interestMode === 'FLAT' ? input.principalPaise : input.outstandingPrincipalPaise;
+  if (basePaise <= 0 || input.interestRateBps <= 0) {
+    return 0;
+  }
+  return roundHalfUp(BigInt(basePaise) * BigInt(input.interestRateBps), 10_000n);
+}
+
+/**
+ * Authoritative Samiti Rules 3, 4, 5:
+ * Evaluates interest due and unpaid prior interest carried forward for a loan at a meeting date.
+ */
+export function calculateLoanInterestDueAtMeeting(input: {
+  loanId: string;
+  disbursedDate: string;
+  principalPaise: number;
+  interestRateBps: number;
+  interestMode?: InterestMode;
+  entries: ReadonlyArray<CalcLedgerEntry>;
+  meetingDate: string;
+}): {
+  interestDuePaise: number;
+  unpaidPriorInterestPaise: number;
+  totalInterestDuePaise: number;
+  outstandingPrincipalPaise: number;
+} {
+  // If meeting is on or before disbursement date: no interest due per Rule 3
+  if (input.meetingDate <= input.disbursedDate) {
+    const bal = calculateLoanBalance({
+      loanId: input.loanId,
+      disbursedDate: input.disbursedDate,
+      principalPaise: input.principalPaise,
+      interestRateBps: input.interestRateBps,
+      interestMode: input.interestMode ?? 'REDUCING_BALANCE',
+      entries: input.entries,
+      asOfDate: input.meetingDate,
+    });
+    return {
+      interestDuePaise: 0,
+      unpaidPriorInterestPaise: 0,
+      totalInterestDuePaise: 0,
+      outstandingPrincipalPaise: bal.outstandingPrincipalPaise,
+    };
+  }
+
+  // Active entries prior to this meeting (representing state at close of meeting N-1)
+  const priorBal = calculateLoanBalance({
+    loanId: input.loanId,
+    disbursedDate: input.disbursedDate,
+    principalPaise: input.principalPaise,
+    interestRateBps: input.interestRateBps,
+    interestMode: input.interestMode ?? 'REDUCING_BALANCE',
+    entries: input.entries.filter((e) => e.effectiveDate < input.meetingDate),
+    asOfDate: input.meetingDate,
+  });
+
+  const basePrincipal =
+    input.interestMode === 'FLAT' ? input.principalPaise : priorBal.outstandingPrincipalPaise;
+  const currentMeetingInterest =
+    basePrincipal > 0 && input.interestRateBps > 0
+      ? roundHalfUp(BigInt(basePrincipal) * BigInt(input.interestRateBps), 10_000n)
+      : 0;
+
+  const unpaidPriorInterestPaise = priorBal.unpaidAccruedInterestPaise;
+  const totalInterestDuePaise = currentMeetingInterest + unpaidPriorInterestPaise;
+
+  return {
+    interestDuePaise: currentMeetingInterest,
+    unpaidPriorInterestPaise,
+    totalInterestDuePaise,
+    outstandingPrincipalPaise: priorBal.outstandingPrincipalPaise,
+  };
+}
+
 function formatMonthBounds(year: number, month: number): {
   monthStart: string;
   monthEnd: string;
@@ -181,41 +271,8 @@ export function calculateLoanBalance(input: {
 
   const outstandingPrincipalPaise = Math.max(0, principalDisbursedPaise - principalRepaidPaise);
 
-  const exclusiveCutoffDate = input.includeAsOfDayInterest
-    ? addDaysIst(input.asOfDate, 1)
-    : input.asOfDate;
-
-  let computedInterestAccruedPaise = 0;
-  if (exclusiveCutoffDate > input.disbursedDate && principalDisbursedPaise > 0) {
-    const startParts = parseIstDateParts(input.disbursedDate);
-    const endParts = parseIstDateParts(addDaysIst(exclusiveCutoffDate, -1));
-
-    let y = startParts.year;
-    let m = startParts.month;
-    while (y < endParts.year || (y === endParts.year && m <= endParts.month)) {
-      computedInterestAccruedPaise += calculateLoanAccruedInterestForMonth({
-        loanId: input.loanId,
-        disbursedDate: input.disbursedDate,
-        principalPaise: input.principalPaise,
-        interestRateBps: input.interestRateBps,
-        interestMode: input.interestMode,
-        entries: activeUpToAsOf,
-        year: y,
-        month: m,
-        exclusiveCutoffDate,
-      });
-      m += 1;
-      if (m > 12) {
-        m = 1;
-        y += 1;
-      }
-    }
-  }
-
-  const effectiveAccruedInterestPaise = Math.max(
-    postedInterestAccruedPaise,
-    computedInterestAccruedPaise
-  );
+  const effectiveAccruedInterestPaise = postedInterestAccruedPaise;
+  const computedInterestAccruedPaise = postedInterestAccruedPaise;
 
   const unpaidPostedInterestPaise = Math.max(
     0,
