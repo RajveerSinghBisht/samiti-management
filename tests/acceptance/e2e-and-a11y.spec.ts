@@ -9,7 +9,7 @@ const E2E_PORT = 3100;
 const BASE_URL = `http://localhost:${E2E_PORT}`;
 const E2E_DB_DIR = path.resolve(process.cwd(), '.data', 'e2e-pg');
 
-const SHARED_ENV: Record<string, string> = {
+const SHARED_ENV: NodeJS.ProcessEnv = {
   ...process.env,
   NODE_ENV: 'production',
   PORT: String(E2E_PORT),
