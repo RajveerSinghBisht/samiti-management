@@ -25,9 +25,10 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setError('');
     setSubmitting(true);
+    const cleanMobile = mobile.replace(/^\+91/, '').replace(/^0/, '').replace(/\D/g, '');
     try {
       const res = await apiMutate<{ requiresTotpSetup: boolean }>('/api/auth/admin/login', 'POST', {
-        mobile: mobile.trim(),
+        mobile: cleanMobile,
         password,
         totpCode: totpCode.trim() || undefined,
         recoveryCode: recoveryCode.trim() || undefined,
@@ -65,16 +66,22 @@ export default function AdminLoginPage() {
             <label htmlFor="admin-mobile" className="block text-lg font-bold text-slate-900 mb-1">
               {dict.mobileLabel}
             </label>
-            <input
-              id="admin-mobile"
-              name="mobile"
-              type="tel"
-              inputMode="numeric"
-              required
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              className="w-full min-h-[48px] px-4 py-3 text-lg rounded-lg border-2 border-slate-700 bg-white text-slate-900"
-            />
+            <div className="flex rounded-lg border-2 border-slate-700 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-blue-700">
+              <span className="inline-flex items-center px-4 bg-slate-100 text-slate-800 font-bold text-lg border-r-2 border-slate-300 select-none">
+                🇮🇳 +91
+              </span>
+              <input
+                id="admin-mobile"
+                name="mobile"
+                type="tel"
+                inputMode="numeric"
+                required
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                className="w-full min-h-[48px] px-4 py-3 text-lg bg-transparent text-slate-900 focus:outline-none"
+                placeholder="9820099001"
+              />
+            </div>
           </div>
 
           <div>

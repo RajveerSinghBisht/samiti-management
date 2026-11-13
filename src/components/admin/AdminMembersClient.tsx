@@ -36,10 +36,11 @@ export function AdminMembersClient({ initialMembers }: { initialMembers: MemberR
     e.preventDefault();
     setError('');
     setNotice('');
+    const cleanMobile = mobile.replace(/^\+91/, '').replace(/^0/, '').replace(/\D/g, '');
     try {
       await apiMutate('/api/admin/members', 'POST', {
         name: name.trim(),
-        mobile: mobile.trim(),
+        mobile: cleanMobile,
         role,
         initialSecret: initialSecret.trim(),
       });
@@ -103,14 +104,20 @@ export function AdminMembersClient({ initialMembers }: { initialMembers: MemberR
             <label htmlFor="m-mobile" className="block font-bold mb-1">
               Mobile Number
             </label>
-            <input
-              id="m-mobile"
-              required
-              inputMode="numeric"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              className="w-full min-h-[48px] px-4 py-2 border-2 border-slate-700 rounded-lg"
-            />
+            <div className="flex rounded-lg border-2 border-slate-700 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-blue-700">
+              <span className="inline-flex items-center px-3 bg-slate-100 text-slate-800 font-bold border-r-2 border-slate-300 select-none">
+                🇮🇳 +91
+              </span>
+              <input
+                id="m-mobile"
+                required
+                inputMode="numeric"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                placeholder="9820012345"
+                className="w-full min-h-[48px] px-4 py-2 bg-transparent text-slate-900 focus:outline-none"
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="m-role" className="block font-bold mb-1">

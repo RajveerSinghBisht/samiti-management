@@ -88,7 +88,7 @@ export function CycleWizardClient({
     e.preventDefault();
     setError('');
     const trimmedName = newMemberName.trim();
-    const trimmedMobile = newMemberMobile.trim();
+    const trimmedMobile = newMemberMobile.replace(/^\+91/, '').replace(/^0/, '').replace(/\D/g, '');
     if (trimmedName.length < 2) {
       setError('Member name must have at least 2 characters');
       return;
@@ -366,16 +366,20 @@ export function CycleWizardClient({
               />
             </div>
             <div>
-              <label htmlFor="new-mem-mob" className="block text-sm font-bold text-slate-700">10-Digit Mobile</label>
-              <input
-                id="new-mem-mob"
-                type="tel"
-                maxLength={10}
-                value={newMemberMobile}
-                onChange={(e) => setNewMemberMobile(e.target.value)}
-                placeholder="9876543210"
-                className="w-full p-2 border rounded"
-              />
+              <label htmlFor="new-mem-mob" className="block text-sm font-bold text-slate-700">Mobile Number</label>
+              <div className="flex rounded border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-blue-600">
+                <span className="inline-flex items-center px-2 bg-slate-100 text-slate-800 text-sm font-bold border-r border-slate-300 select-none">
+                  🇮🇳 +91
+                </span>
+                <input
+                  id="new-mem-mob"
+                  type="tel"
+                  value={newMemberMobile}
+                  onChange={(e) => setNewMemberMobile(e.target.value)}
+                  placeholder="9876543210"
+                  className="w-full p-2 focus:outline-none"
+                />
+              </div>
             </div>
             <div className="flex items-end">
               <button

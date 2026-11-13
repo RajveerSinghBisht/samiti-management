@@ -22,7 +22,11 @@ import { parseJsonBody } from '@/lib/http';
 import { recordAuditEvent } from '@/lib/services/audit';
 
 const adminLoginSchema = z.object({
-  mobile: z.string().trim().regex(/^\d{10}$/),
+  mobile: z
+    .string()
+    .trim()
+    .transform((val) => val.replace(/^\+91/, '').replace(/^0/, '').replace(/\D/g, ''))
+    .refine((val) => /^\d{10}$/.test(val), { message: 'Invalid mobile number' }),
   password: z.string().min(1).max(128),
   totpCode: z.string().trim().optional(),
   recoveryCode: z.string().trim().optional(),
