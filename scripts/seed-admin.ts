@@ -1,5 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { closeDb } from '../src/db';
 import { seedFirstAdmin } from '../src/lib/auth/seed';
+
+// Ensure required environment variables for standalone script execution
+if (!process.env.DATABASE_URL) {
+  const envLocalPath = path.resolve(process.cwd(), '.env.local');
+  if (fs.existsSync(envLocalPath)) {
+    const envContent = fs.readFileSync(envLocalPath, 'utf8');
+    const match = envContent.match(/DATABASE_URL=["']?([^"'\r\n]+)["']?/);
+    if (match) process.env.DATABASE_URL = match[1];
+  }
+}
 
 async function main() {
   const name = process.env.SEED_ADMIN_NAME || process.argv[2] || '';

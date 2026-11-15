@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { applyMigrations, closeDb, getDb, members, cycles, cycleMembers, contributionSchedule, meetings, loans } from '../src/db';
 import { encryptTotpSecret, hashPassword, hashPin } from '../src/lib/auth/crypto';
 import { getEnv } from '../src/lib/env';
@@ -6,6 +8,14 @@ import { addMonthsIst } from '../src/lib/dates';
 import { formatPaiseToInr } from '../src/lib/money';
 
 // Ensure required environment variables for standalone script execution
+if (!process.env.DATABASE_URL) {
+  const envLocalPath = path.resolve(process.cwd(), '.env.local');
+  if (fs.existsSync(envLocalPath)) {
+    const envContent = fs.readFileSync(envLocalPath, 'utf8');
+    const match = envContent.match(/DATABASE_URL=["']?([^"'\r\n]+)["']?/);
+    if (match) process.env.DATABASE_URL = match[1];
+  }
+}
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL =
     process.env.TEST_DATABASE_URL ||
